@@ -1,7 +1,7 @@
 package hu.bme.mit.spaceship;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
 /**
@@ -30,9 +30,9 @@ public class TorpedoStore {
     }
   }
 
-  public boolean fire(int numberOfTorpedos) throws NoSuchAlgorithmException {
+  public boolean fire(int numberOfTorpedos){
     if(numberOfTorpedos < 1 || numberOfTorpedos > this.torpedoCount){
-     throw (new IllegalArgumentException("numberOfTorpedos"));
+      throw(new IllegalArgumentException("numberOfTorpedos"));
     }
 
     boolean success = false;
@@ -44,6 +44,7 @@ public class TorpedoStore {
     }catch (NoSuchAlgorithmException e){
       return success;
     }
+
     double r = generator.nextDouble();
 
     if (r >= FAILURE_RATE) {
