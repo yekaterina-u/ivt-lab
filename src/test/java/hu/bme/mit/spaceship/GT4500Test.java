@@ -9,32 +9,130 @@ import static org.mockito.Mockito.*;
 public class GT4500Test {
 
   private GT4500 ship;
+  private TorpedoStore mockPrimaryTS;
+  private TorpedoStore mockSecondaryTS;
 
   @BeforeEach
   public void init(){
+    mockPrimaryTS = mock (TorpedoStore.class);
+    mockSecondaryTS = mock (TorpedoStore.class);
     this.ship = new GT4500();
+    this.ship.injectDependencies(mockPrimaryTS, mockSecondaryTS, false);
   }
 
   @Test
   public void fireTorpedo_Single_Success(){
     // Arrange
-
+    when(mockPrimaryTS.fire(1)).thenReturn(true);
+    when (mockSecondaryTS.fire(1)).thenReturn(true);
     // Act
-    boolean result = ship.fireTorpedo(FiringMode.SINGLE);
+    final boolean result = ship.fireTorpedo(FiringMode.SINGLE);
 
     // Assert
     assertEquals(true, result);
+    verify(mockPrimaryTS, times(1)).fire(1);
+    verify(mockSecondaryTS, times(0)).fire(1);
   }
 
   @Test
-  public void fireTorpedo_All_Success(){
+  public void fireTorpedo_All_Success() {
     // Arrange
+    when(mockPrimaryTS.fire(1)).thenReturn(true);
+    when(mockSecondaryTS.fire(1)).thenReturn(true);
+    // Act
+    final boolean result = ship.fireTorpedo(FiringMode.ALL);
 
+    // Assert
+    assertEquals(true, result);
+    verify(mockPrimaryTS, times(1)).fire(1);
+    verify(mockSecondaryTS, times(1)).fire(1);
+  }
+
+  @Test
+  public void fireTorpedo_Single_Failure(){
+    // Arrange
+    when(mockPrimaryTS.fire(1)).thenReturn(false);
+    when(mockSecondaryTS.fire(1)).thenReturn(false);
+    
+    // Act
+    final boolean result = ship.fireTorpedo(FiringMode.SINGLE);
+    
+    // Assert
+    assertEquals(false, result);
+    verify(mockPrimaryTS, times(1)).fire(1);
+    verify(mockSecondaryTS, times(0)).fire(1);
+  }
+
+  @Test
+  public void fireTorpedo_All_Failure(){
+    // Arrange
+    when(mockPrimaryTS.fire(1)).thenReturn(false);
+    when(mockSecondaryTS.fire(1)).thenReturn(false);
     // Act
     boolean result = ship.fireTorpedo(FiringMode.ALL);
 
     // Assert
-    assertEquals(true, result);
+    assertEquals(false, result);
+    verify(mockPrimaryTS, times(1)).fire(1);
+    verify(mockSecondaryTS, times(1)).fire(1);
   }
 
+  @Test
+  public void fireTorpedo_All_Empty() {
+    when(mockPrimaryTS.isEmpty()).thenReturn(true);
+    when(mockSecondaryTS.isEmpty()).thenReturn(true);
+
+    // Act
+    boolean result = ship.fireTorpedo(FiringMode.ALL);
+    result = ship.fireTorpedo(FiringMode.ALL);
+
+    // Assert
+    assertEquals(false, result);
+    verify(mockPrimaryTS, times(0)).fire(1);
+    verify(mockSecondaryTS, times(0)).fire(1);
+  }
+  @Test
+  public void fireTorpedo_Single_AllTorpedos_Empty(){
+    // Arrange
+    when(mockPrimaryTS.isEmpty()).thenReturn(true);
+    when(mockSecondaryTS.isEmpty()).thenReturn(true);
+
+    // Act
+    boolean result = ship.fireTorpedo(FiringMode.SINGLE);
+    result = ship.fireTorpedo(FiringMode.SINGLE);
+
+    // Assert
+    assertEquals(false, result);
+    verify(mockPrimaryTS, times(2)).isEmpty();
+    verify(mockSecondaryTS, times(2)).isEmpty();
+  }
+
+  @Test
+  public void fireTorpedo_Single_Alternating_Success(){
+    // Arrange
+    when(mockPrimaryTS.fire(1)).thenReturn(true);
+    when(mockSecondaryTS.fire(1)).thenReturn(true);
+    // Act
+    boolean firstTry = ship.fireTorpedo(FiringMode.SINGLE);
+    boolean secondTry = ship.fireTorpedo(FiringMode.SINGLE);
+    // Assert
+    assertEquals(true, firstTry);
+    assertEquals(true, secondTry);
+    verify(mockPrimaryTS, times(1)).fire(1);
+    verify(mockSecondaryTS, times(1)).fire(1);
+  }
+  @Test
+  public void fireTorpedo_Single_Second_Empty_Success(){
+    // Arrange
+    when(mockPrimaryTS.fire(1)).thenReturn(true);
+    when(mockSecondaryTS.isEmpty()).thenReturn(true);
+    // Act
+    boolean firstTry = ship.fireTorpedo(FiringMode.SINGLE);
+    boolean secondTry = ship.fireTorpedo(FiringMode.SINGLE);
+    // Assert
+    assertEquals(true, firstTry);
+    assertEquals(true, secondTry);
+    verify(mockPrimaryTS, times(2)).fire(1);
+    verify(mockSecondaryTS, times(1)).isEmpty();
+  }
 }
